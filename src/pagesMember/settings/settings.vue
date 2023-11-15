@@ -40,8 +40,8 @@ const onLogout = () => {
       <navigator hover-class="none" class="item arrow" url=" ">关于</navigator>
     </view>
     <!-- 操作按钮 -->
-    <view class="action">
-      <view class="button" @tag="onLogout">退出登录</view>
+    <view class="action" v-if="memberStore.profile">
+      <view class="button" @tap="onLogout">退出登录</view>
     </view>
   </view>
 </template>
