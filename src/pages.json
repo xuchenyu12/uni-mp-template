@@ -51,6 +51,12 @@
       "style": {
         "navigationBarTitleText": "商品详情"
       }
+    },
+    {
+      "path": "pages/goods/components/AddressPanel",
+      "style": {
+        "navigationBarTitleText": "AddressPanel"
+      }
     }
   ],
   "globalStyle": {
@@ -59,7 +65,6 @@
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
   },
-
   "tabBar": {
     "color": "#333",
     "selectedColor": "#27ba9b",
@@ -109,11 +114,22 @@
             "navigationBarTextStyle": "white",
             "navigationBarTitleText": "个人信息"
           }
+        },
+        {
+          "path": "address/address",
+          "style": {
+            "navigationBarTitleText": "地址管理"
+          }
+        },
+        {
+          "path": "address/address-form",
+          "style": {
+            "navigationBarTitleText": "编辑地址"
+          }
         }
       ]
     }
   ],
-
   "preloadRule": {
     "pages/my/my": {
       "network": "all",
