@@ -4,6 +4,7 @@ import AddressPanel from './components/AddressPanel.vue'
 import ServicePanelVue from './components/ServicePanel.vue'
 
 import type {
+  SkuPopupEvent,
   SkuPopupInstance,
   SkuPopupLocaldata
 } from '@/components/vk-data-goods-sku-popup/vk-data-goods-sku-popup'
@@ -99,11 +100,18 @@ const skuPopuRef = ref<SkuPopupInstance>()
 const selectArrText = computed(() => {
   return skuPopuRef.value?.selectArr?.join(' ').trim() || '请选择商品规格'
 })
+//加入购物车
+const onAddCart = async (ev: SkuPopupEvent) => {
+  await postMemberCartAPI({ attrsText: selectArrText.value, count: ev.buy_num, id: ev.goods_id })
+  uni.showToast({ title: '添加成功' })
+  isShowSku.value = false
+}
 </script>
 
 <template>
   <!-- SKU弹窗组件 -->
   <vk-data-goods-sku-popup
+    @add-cart="onAddCart"
     v-model="isShowSku"
     :localdata="localdata"
     :mode="mode"
