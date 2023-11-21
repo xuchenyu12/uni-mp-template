@@ -23,7 +23,7 @@
       }
     },
     {
-      "path": "pages/cart/cart",
+      "path": "pages/cart/cart2",
       "style": {
         "navigationBarTitleText": "购物车"
       }
@@ -136,6 +136,17 @@
           "path": "create",
           "style": {
             "navigationBarTitleText": "填写订单"
+          }
+        }
+      ]
+    },
+    {
+      "root": "pages/cart",
+      "pages": [
+        {
+          "path": "cart2",
+          "style": {
+            "navigationBarTitleText": "cart2"
           }
         }
       ]

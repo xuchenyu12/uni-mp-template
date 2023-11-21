@@ -1,43 +1,42 @@
 <script setup lang="ts">
-import { onLoad } from '@dcloudio/uni-app'
 import AddressPanel from './components/AddressPanel.vue'
-import ServicePanelVue from './components/ServicePanel.vue'
+import ServicePanel from './components/ServicePanel.vue'
 
+import { onLoad } from '@dcloudio/uni-app'
 import type {
-  SkuPopupEvent,
+  SkuPopupLocaldata,
   SkuPopupInstance,
-  SkuPopupLocaldata
+  SkuPopupEvent
 } from '@/components/vk-data-goods-sku-popup/vk-data-goods-sku-popup'
-
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
-//定义枚举，按钮模式
+// 定义枚举，按钮模式
 enum SkuMode {
   Both = 1,
   Cart = 2,
   Buy = 3
 }
-
 const mode = ref<SkuMode>(SkuMode.Cart)
 
-//打开SKU弹窗修改按钮模式
+// 打开SKU弹窗修改按钮模式
 const openSkuPopup = (val: SkuMode) => {
-  //显示SKU弹窗
+  // 显示SKU弹窗
   isShowSku.value = true
-  //修改按钮模式
+  // 修改按钮模式
   mode.value = val
 }
 
+// 接收页面参数
 const query = defineProps<{
   id: string
 }>()
-
-// 获取商品详细信息
+// 获取商品详情信息
 const goods = ref<GoodsResult>()
 const getGoodsByIdData = async () => {
   const res = await getGoodsByIdAPI(query.id)
   goods.value = res.result
+
   // SKU组件所需格式
   localdata.value = {
     _id: res.result.id,
@@ -60,32 +59,32 @@ onLoad(() => {
   getGoodsByIdData()
 })
 
-//轮播变化时
+// 轮播变化时
 const currentIndex = ref(0)
 const onChange: UniHelper.SwiperOnChange = (ev) => {
   currentIndex.value = ev.detail.current
 }
-
+// 点击图片时
 const onTapImage = (url: string) => {
-  //大图预览
+  // 大图预览
   uni.previewImage({
     current: url,
     urls: goods.value!.mainPictures
   })
 }
 
-//uni-ui 弹出层组件 ref
+// uni-ui 弹出层组件 ref
 const popup = ref<{
   open: (type?: UniHelper.UniPopupType) => void
   close: () => void
 }>()
 
-//弹出层条件渲染
+// 弹出层条件渲染
 const popupName = ref<'address' | 'service'>()
 const openPopup = (name: typeof popupName.value) => {
-  //修改弹出层名称
+  // 修改弹出层名称
   popupName.value = name
-  //打开弹出层
+  // 打开弹出层
   popup.value?.open()
 }
 
@@ -94,13 +93,14 @@ const isShowSku = ref(false)
 // 商品信息
 const localdata = ref({} as SkuPopupLocaldata)
 
-//SKU组件实例
+// SKU组件实例
 const skuPopuRef = ref<SkuPopupInstance>()
-//计算被选中给的值
+// 计算被选中的值
 const selectArrText = computed(() => {
   return skuPopuRef.value?.selectArr?.join(' ').trim() || '请选择商品规格'
 })
-//加入购物车
+
+// 加入购物车
 const onAddCart = async (ev: SkuPopupEvent) => {
   await postMemberCartAPI({ attrsText: selectArrText.value, count: ev.buy_num, id: ev.goods_id })
   uni.showToast({ title: '添加成功' })
@@ -113,12 +113,12 @@ const onAddCart = async (ev: SkuPopupEvent) => {
   <vk-data-goods-sku-popup
     @add-cart="onAddCart"
     v-model="isShowSku"
-    :localdata="localdata"
     :mode="mode"
+    :localdata="localdata"
     add-cart-background-color="#FFA868"
-    buy-now-background-color="27BA9B"
+    buy-now-background-color="#27BA9B"
     ref="skuPopuRef"
-    ：actived-style="{
+    :actived-style="{
       color: '#27BA9B',
       borderColor: '#27BA9B',
       backgroundColor: '#E9F8F5'
@@ -168,10 +168,10 @@ const onAddCart = async (ev: SkuPopupEvent) => {
         </view>
       </view>
     </view>
-
+    <!-- uni-ui 弹出层 -->
     <uni-popup ref="popup" type="bottom" background-color="#fff">
       <AddressPanel v-if="popupName === 'address'" @close="popup?.close()" />
-      <ServicePanelVue v-if="popupName === 'service'" @close="popup?.close()" />
+      <ServicePanel v-if="popupName === 'service'" @close="popup?.close()" />
     </uni-popup>
 
     <!-- 商品详情 -->
@@ -221,13 +221,13 @@ const onAddCart = async (ev: SkuPopupEvent) => {
     <view class="icons">
       <button class="icons-button"><text class="icon-heart"></text>收藏</button>
       <button class="icons-button" open-type="contact"> <text class="icon-handset"></text>客服 </button>
-      <navigator class="icons-button" url="/pages/cart/cart" open-type="switchTab">
+      <navigator class="icons-button" url="/pages/cart/cart2" open-type="navigate">
         <text class="icon-cart"></text>购物车
       </navigator>
     </view>
     <view class="buttons">
-      <view @tap="openSkuPopup(SkuMode.Cart)" class="addcart"> 加入购物车 </view>
-      <view @tap="openSkuPopup(SkuMode.Buy)" class="buynow"> 立即购买 </view>
+      <view class="addcart" @tap="openSkuPopup(SkuMode.Cart)"> 加入购物车 </view>
+      <view class="buynow" @tap="openSkuPopup(SkuMode.Buy)"> 立即购买 </view>
     </view>
   </view>
 </template>
