@@ -1,7 +1,6 @@
 <script setup lang="ts">
 // @ts-nocheck
 import { codeToText } from '@/utils/element-china-area-data.mjs'
-
 // 获取收货地址列表数据
 const addressList = ref<AddressItem[]>([])
 const getMemberAddressData = async () => {
@@ -13,11 +12,11 @@ const getMemberAddressData = async () => {
 onShow(() => {
   getMemberAddressData()
 })
+
 //删除收货地址
 const onDeleteAddress = (id: string) => {
-  //二次确认
   uni.showModal({
-    content: '删除地址？',
+    content: '删除地址?',
     success: async (res) => {
       if (res.confirm) {
         //根据id删除收获地址
@@ -27,6 +26,14 @@ const onDeleteAddress = (id: string) => {
       }
     }
   })
+}
+
+//修改收货地址
+const onChangeAddress = (item: AddressItem) => {
+  //修改选中收货地址
+  const addressStore = useAddressStore()
+  addressStore.changeSelectedAddress(item)
+  uni.navigateBack()
 }
 </script>
 
@@ -38,7 +45,7 @@ const onDeleteAddress = (id: string) => {
         <uni-swipe-action class="address-list">
           <!-- 收货地址项 -->
           <uni-swipe-action-item class="item" v-for="item in addressList" :key="item.id">
-            <view class="item-content">
+            <view class="item-content" @tap="onChangeAddress(item)">
               <view class="user">
                 {{ item.receiver }}
                 <text class="contact">{{ item.contact }}</text>
@@ -54,12 +61,13 @@ const onDeleteAddress = (id: string) => {
                 class="edit"
                 hover-class="none"
                 :url="`/pagesMember/address/address-form?id=${item.id}`"
+                @tap.stop="() => {}"
               >
                 修改
               </navigator>
             </view>
             <template #right>
-              <button class="delete-button" @tap="onDeleteAddress(item.id)">删除</button>
+              <button class="delete-button" @tap="onDeleteAddress">删除</button>
             </template>
           </uni-swipe-action-item>
         </uni-swipe-action>

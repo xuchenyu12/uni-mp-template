@@ -1,31 +1,37 @@
 {
+  // 组件自动导入
   "easycom": {
     "autoscan": true,
     "custom": {
+      // uni-ui 规则如下配置
       "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
     }
   },
   "pages": [
+    //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "首页",
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white"
+        "navigationBarTitleText": "首页"
       }
     },
     {
       "path": "pages/my/my",
       "style": {
-        "navigationBarTitleText": "我的",
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white"
+        "navigationBarTitleText": "white",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/cart/cart",
+      "style": {
+        "navigationBarTitleText": "购物车"
       }
     },
     {
       "path": "pages/cart/cart2",
       "style": {
-        "navigationBarTitleText": "购物车"
+        "navigationBarTitleText": "购物车2"
       }
     },
     {
@@ -41,15 +47,21 @@
       }
     },
     {
+      "path": "pages/goods/goods",
+      "style": {
+        "navigationBarTitleText": "goods"
+      }
+    },
+    {
       "path": "pages/hot/hot",
       "style": {
         "navigationBarTitleText": "热门推荐"
       }
     },
     {
-      "path": "pages/goods/goods",
+      "path": "pages/goods/components/ServicePanel",
       "style": {
-        "navigationBarTitleText": "商品详情"
+        "navigationBarTitleText": "ServicePanel"
       }
     },
     {
@@ -65,6 +77,7 @@
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
   },
+  // 设置 TabBar
   "tabBar": {
     "color": "#333",
     "selectedColor": "#27ba9b",
@@ -130,23 +143,31 @@
       ]
     },
     {
-      "root": "pagesOrder/create",
+      "root": "pagesOrder",
       "pages": [
         {
-          "path": "create",
+          "path": "create/create",
           "style": {
-            "navigationBarTitleText": "填写订单"
+            "navigationBarTitleText": "创建订单"
           }
-        }
-      ]
-    },
-    {
-      "root": "pages/cart",
-      "pages": [
+        },
         {
-          "path": "cart2",
+          "path": "detail/detail",
           "style": {
-            "navigationBarTitleText": "cart2"
+            "navigationBarTitleText": "订单详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "payment/payment",
+          "style": {
+            "navigationBarTitleText": "支付结果"
+          }
+        },
+        {
+          "path": "list/list",
+          "style": {
+            "navigationBarTitleText": "订单列表"
           }
         }
       ]

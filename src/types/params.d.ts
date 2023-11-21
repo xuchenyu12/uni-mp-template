@@ -293,7 +293,7 @@ type CartItem = {
   /** 商品 ID */
   id: string
   /** SKU ID */
-  // skuId?: string
+  goodsId: string
   /** 商品名称 */
   name: string
   /** 图片 */
