@@ -75,7 +75,7 @@ const getMemberOrderLogisticsByIdData = async () => {
 }
 
 // 删除订单
-const onOrderDelete = () => {
+const onOrderDelete = (id: string) => {
   // 二次确认
   uni.showModal({
     content: '是否删除订单',
@@ -110,7 +110,7 @@ const onTimeup = () => {
   order.value!.orderState = OrderState.YiQuXiao
 }
 
-const onOrderPay = async () => {
+const onOrderPay = async (id: string) => {
   //通过环境变量区分开发环境
   if (import.meta.env.DEV) {
     await getPayMockAPI(parseInt(query.id))
@@ -136,7 +136,7 @@ const onOrderSend = async () => {
 }
 
 //确认收货
-const onOrderConfirm = () => {
+const onOrderConfirm = (id: string) => {
   // 二次确认弹窗
   uni.showModal({
     content: '为保障您的权益，请收到货并确认无误后，再确认收货',
