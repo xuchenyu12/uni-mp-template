@@ -22,7 +22,7 @@ const cartList = ref<CartItem[]>([])
 const getMemberCarData = async () => {
   const res = await getMemberCartAPI()
   cartList.value = res.result
-  showCartList, (value = res.result.length > 0)
+  showCartList.value = res.result.length > 0
 }
 onShow(() => {
   //用户已登陆才允许调用

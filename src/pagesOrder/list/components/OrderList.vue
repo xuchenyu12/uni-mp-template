@@ -2,23 +2,6 @@
 import { OrderState, orderStateList } from '@/config/contants'
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
-//是否分页结束
-const isFinish = ref(false)
-//是否触发下拉刷新
-const isTriggered = ref(false)
-//自定义下拉刷新被触发
-const onRefresherrefresh = async () => {
-  //开始动画
-  isTriggered.value = true
-  //重置数据
-  queryParams.page = 1
-  orderList.value = []
-  isFinish.value = false
-  //加载数据
-  await getMemberOrderData()
-  //关闭动画
-  isTriggered.value = false
-}
 // 定义 porps
 const props = defineProps<{
   orderState: number
@@ -60,11 +43,82 @@ const getMemberOrderData = async () => {
 onMounted(() => {
   getMemberOrderData()
 })
+
+// 订单⽀付
+const onOrderPay = async (id: string) => {
+  if (import.meta.env.DEV) {
+    // 开发环境模拟⽀付
+    await getPayMockAPI(parseInt(id))
+  } else {
+    // #ifdef MP-WEIXIN
+    // 正式环境微信⽀付
+    const res = await getPayWxPayMiniPayAPI({ orderId: id })
+    await wx.requestPayment(res.result)
+    // #endif
+    // #ifdef H5 || APP-PLUS
+    // H5端 和 App 端未开通⽀付-模拟⽀付体验
+    await getPayMockAPI(parseInt(id))
+    // #endif
+  }
+  // 成功提示
+  uni.showToast({ title: '⽀付成功' })
+  // 更新订单状态
+  const order = orderList.value.find((v) => v.id === id)
+  order!.orderState = OrderState.DaiFaHuo
+}
+// 确认收货
+const onOrderConfirm = (id: string) => {
+  uni.showModal({
+    content: '为保障您的权益，请收到货并确认⽆误后，再确认收货',
+    confirmColor: '#27BA9B',
+    success: async (res) => {
+      if (res.confirm) {
+        await putMemberOrderReceiptByIdAPI(id)
+        uni.showToast({ icon: 'success', title: '确认收货成功' })
+        // 确认成功，更新为待评价
+        const order = orderList.value.find((v) => v.id === id)
+        order!.orderState = OrderState.DaiPingJia
+      }
+    }
+  })
+}
+// 删除订单
+const onOrderDelete = (id: string) => {
+  uni.showModal({
+    content: '你确定要删除该订单？',
+    confirmColor: '#27BA9B',
+    success: async (res) => {
+      if (res.confirm) {
+        await deleteMemberOrderAPI([id])
+        // 删除成功，界⾯中删除订单
+        const index = orderList.value.findIndex((v) => v.id === id)
+        orderList.value.splice(index, 1)
+      }
+    }
+  })
+}
+// 是否分⻚结束
+const isFinish = ref(false)
+// 是否触发下拉刷新
+const isTriggered = ref(false)
+// ⾃定义下拉刷新被触发
+const onRefresherrefresh = async () => {
+  // 开始动画
+  isTriggered.value = true
+  // 重置数据
+  queryParams.page = 1
+  orderList.value = []
+  isFinish.value = false
+  // 加载数据
+  await getMemberOrderData()
+  // 关闭动画
+  isTriggered.value = false
+}
 </script>
 <template>
   <scroll-view
-    scroll-y
     enable-back-to-top
+    scroll-y
     class="orders"
     refresher-enabled
     :refresher-triggered="isTriggered"
@@ -78,7 +132,11 @@ onMounted(() => {
         <!-- 订单状态⽂字 -->
         <text>{{ orderStateList[order.orderState].text }}</text>
         <!-- 待评价/已完成/已取消 状态: 展示删除订单 -->
-        <text v-if="order.orderState >= OrderState.DaiPingJia" class="icon-delete"></text>
+        <text
+          v-if="order.orderState >= OrderState.DaiPingJia"
+          class="icon-delete"
+          @tap="onOrderDelete(order.id)"
+        ></text>
       </view>
       <!-- 商品信息，点击商品跳转到订单详情，不是商品详情 -->
       <navigator
@@ -106,29 +164,35 @@ onMounted(() => {
       <view class="action">
         <!-- 待付款状态：显示去⽀付按钮 -->
         <template v-if="order.orderState === OrderState.DaiFuKuan">
-          <view class="button primary">去⽀付</view>
+          <view class="button primary" @tap="onOrderPay(order.id)">去⽀付</view>
         </template>
         <template v-else>
           <navigator
             class="button secondary"
-            :url="`/pagesOrder/create/create?orderId=id`"
+            :url="`/pagesOrder/create/create?orderId=${order.id}`"
             hover-class="none"
           >
             再次购买
           </navigator>
           <!-- 待收货状态: 展示确认收货 -->
-          <view v-if="order.orderState === OrderState.DaiShouHuo" class="button primary">确认收货</view>
+          <view
+            v-if="order.orderState === OrderState.DaiShouHuo"
+            class="button primary"
+            @tap="onOrderConfirm(order.id)"
+          >
+            确认收货
+          </view>
         </template>
       </view>
     </view>
     <!-- 底部提示⽂字 -->
     <view class="loading-text" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
-      {{ true ? '没有更多数据~' : '正在加载...' }}
+      {{ isFinish ? '没有更多数据~' : '正在加载...' }}
     </view>
   </scroll-view>
 </template>
 <style lang="scss">
-// 订单列表
+//订单列表
 .orders {
   .card {
     min-height: 100rpx;
@@ -136,86 +200,132 @@ onMounted(() => {
     margin: 20rpx 20rpx 0;
     border-radius: 10rpx;
     background-color: #fff;
-    &:last-child {
-      padding-bottom: 40rpx;
-    }
   }
-  .status {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 28rpx;
-    color: #999;
-    margin-bottom: 15rpx;
-    .date {
-      color: #666;
-      flex: 1;
-    }
-    .primary {
-      color: #ff9240;
-    }
-    .icon-delete {
-      line-height: 1;
-      margin-left: 10rpx;
-      padding-left: 10rpx;
-      border-left: 1rpx solid #e3e3e3;
-    }
+  &:last-child {
+    padding-bottom: 40rpx;
   }
-  .goods {
-    display: flex;
-    margin-bottom: 20rpx;
-    .cover {
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 28rpx;
+  color: #999;
+  margin-bottom: 15rpx;
+  .date {
+    color: #666;
+    flex: 1;
+  }
+  .primary {
+    color: #ff9240;
+  }
+  .icon-delete {
+    line-height: 1;
+    margin-left: 10rpx;
+    padding-left: 10rpx;
+    border-left: 1rpx solid #e3e3e3;
+  }
+}
+.goods {
+  display: flex;
+  margin-bottom: 20rpx;
+  .cover {
+    width: 170rpx;
+    height: 170rpx;
+    margin-right: 20rpx;
+    border-radius: 10rpx;
+    overflow: hidden;
+    position: relative;
+    .image {
       width: 170rpx;
       height: 170rpx;
-      margin-right: 20rpx;
-      border-radius: 10rpx;
-      overflow: hidden;
-      position: relative;
-      .image {
-        width: 170rpx;
-        height: 170rpx;
-      }
     }
-    .quantity {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      line-height: 1;
-      padding: 6rpx 4rpx 6rpx 8rpx;
-      font-size: 24rpx;
-      color: #fff;
-      border-radius: 10rpx 0 0 0;
-      background-color: rgba(0, 0, 0, 0.6);
-    }
-    .meta {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .name {
-      height: 80rpx;
-      font-size: 26rpx;
-      color: #444;
-    }
-    .type {
-      line-height: 1.8;
-      padding: 0 15rpx;
-      margin-top: 10rpx;
-      font-size: 24rpx;
-      align-self: flex-start;
-      border-radius: 4rpx;
-      color: #888;
-      background-color: #f7f7f8;
-    }
-    .more {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22rpx;
-      color: #333;
-    }
+  }
+  .quantity {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    line-height: 1;
+    padding: 6rpx 4rpx 6rpx 8rpx;
+    font-size: 24rpx;
+    color: #fff;
+    border-radius: 10rpx 000;
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+  .meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .name {
+    height: 80rpx;
+    font-size: 26rpx;
+    color: #444;
+  }
+  .type {
+    line-height: 1.8;
+    padding: 0 15rpx;
+    margin-top: 10rpx;
+    font-size: 24rpx;
+    align-self: flex-start;
+    border-radius: 4rpx;
+    color: #888;
+    background-color: #f7f7f8;
+  }
+  .more {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22rpx;
+    color: #333;
+  }
+}
+
+.payment {
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid gray;
+  padding-bottom: 10px;
+  text.quantity {
+    font-size: 13px;
+    color: gray;
+    margin-left: 180px;
+    margin-right: 10px;
+  }
+  .quantity ~ text:nth-child(1) {
+    color: rgb(208, 206, 206);
+  }
+}
+.action {
+  // display: block;
+  .button {
+    color: green;
+  }
+  .primary {
+    background-color: green;
+    color: white;
+    width: 100px;
+    text-align: center;
+    display: block;
+    margin-top: 10px;
+    padding: 5px 5px;
+    border: 1px solid green;
+    border-radius: 30px 30px;
+    margin-left: 220px;
+  }
+  .secondary {
+    width: 100px;
+    text-align: center;
+    display: block;
+    margin-top: 10px;
+    padding: 5px 5px;
+    border: 1px solid green;
+    border-radius: 30px 30px;
+    // float: right;
+    margin-left: 220px;
   }
 }
 </style>

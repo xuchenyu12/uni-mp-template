@@ -1,7 +1,18 @@
 <script setup lang="ts">
+import { getMemberAddressAPI } from '@/api/category.api'
 const emit = defineEmits<{
   (event: 'close'): void
 }>()
+const addressList = ref<AddressItem[]>([])
+const getAddressByIdData = async () => {
+  const res = await getMemberAddressAPI()
+  addressList.value = res.result
+  console.log(addressList)
+}
+onLoad(() => {
+  console.log('onLoad')
+  getAddressByIdData()
+})
 </script>
 
 <template>
@@ -12,20 +23,11 @@ const emit = defineEmits<{
     <view class="title">配送至</view>
     <!-- 内容 -->
     <view class="content">
-      <view class="item">
-        <view class="user">李明 13824686868</view>
-        <view class="address">北京市顺义区后沙峪地区安平北街6号院</view>
-        <text class="icon icon-checked"></text>
-      </view>
-      <view class="item">
-        <view class="user">王东 13824686868</view>
-        <view class="address">北京市顺义区后沙峪地区安平北街6号院</view>
-        <text class="icon icon-ring"></text>
-      </view>
-      <view class="item">
-        <view class="user">张三 13824686868</view>
-        <view class="address">北京市朝阳区孙河安平北街6号院</view>
-        <text class="icon icon-ring"></text>
+      <view class="item" v-for="item in addressList" :key="item">
+        <view class="user">{{ item.receiver }} {{ item.contact }}</view>
+        <view class="address">{{ item.address }}</view>
+        <text v-if="item.isDefault" class="icon icon-checked"></text>
+        <text v-else class="icon icon-unchecked"></text>
       </view>
     </view>
     <view class="footer">
@@ -42,6 +44,7 @@ const emit = defineEmits<{
   position: relative;
   background-color: #fff;
 }
+
 .title {
   line-height: 1;
   padding: 40rpx 0;
@@ -51,16 +54,19 @@ const emit = defineEmits<{
   border-bottom: 1rpx solid #ddd;
   color: #444;
 }
+
 .close {
   position: absolute;
   right: 24rpx;
   top: 24rpx;
 }
+
 .content {
   min-height: 300rpx;
   max-height: 540rpx;
   overflow: auto;
   padding: 20rpx;
+
   .item {
     padding: 30rpx 50rpx 30rpx 60rpx;
     background-size: 40rpx;
@@ -69,6 +75,7 @@ const emit = defineEmits<{
     background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/locate.png);
     position: relative;
   }
+
   .icon {
     color: #999;
     font-size: 40rpx;
@@ -77,28 +84,34 @@ const emit = defineEmits<{
     top: 50%;
     right: 0;
   }
+
   .icon-checked {
     color: #27ba9b;
   }
+
   .icon-ring {
     color: #444;
   }
+
   .user {
     font-size: 28rpx;
     color: #444;
     font-weight: 500;
   }
+
   .address {
     font-size: 26rpx;
     color: #666;
   }
 }
+
 .footer {
   display: flex;
   justify-content: space-between;
   padding: 20rpx 0 40rpx;
   font-size: 28rpx;
   color: #444;
+
   .button {
     flex: 1;
     height: 72rpx;
@@ -108,10 +121,12 @@ const emit = defineEmits<{
     color: #fff;
     border-radius: 72rpx;
   }
+
   .primary {
     color: #fff;
     background-color: #27ba9b;
   }
+
   .secondary {
     background-color: #ffa868;
   }

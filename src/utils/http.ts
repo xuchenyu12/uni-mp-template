@@ -1,7 +1,8 @@
 import { useMemberStore } from '@/stores'
 // 请求基地址
-const baseURL = 'https://www.dreamcode.site/shop-api'
-//const baseURL = 'http://localhost:8088/shop-api'
+//const baseURL = 'https://www.dreamcode.site/shop-api'
+const baseURL = 'http://8.140.194.3:8088/shop-api'
+//const baseURL = 'https://localhost:8088/shop-api'
 // 拦截器配置
 const httpInterceptor = {
   // 拦截前触发

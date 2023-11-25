@@ -40,6 +40,7 @@ const getGoodsByIdData = async () => {
   console.log(res)
   console.log(res.result.specs[0].value.slice(1, res.result.specs.length - 1))
   goods.value = res.result
+  console.log(res.result.skus)
   // SKU组件所需格式
   localdata.value = {
     _id: res.result.id,
